@@ -1,0 +1,12 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:aminosbh/sdl2-cmake-modules.git
+	branch = master
+	commit = ad006a3daae65a612ed87415037e32188b81071e
+	parent = 5d5504cff84a196ba7b8543d82bfd014a96b2f9c
+	method = merge
+	cmdver = 0.4.0
