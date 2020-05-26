@@ -1,0 +1,13 @@
+# Enable validating this file
+version: ~> 1.0
+
+language: python
+python:
+    - "3.6"
+
+sudo: false
+
+jobs:
+  include:
+    - script: ./build.sh
+      name: "build"
