@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 2.6)
 # TODO: can this have the same name as the lib?
 project(fast-led-simulator CXX)
 
+# Generate the file needed for YCM integration
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/third_party/sdl2-cmake-modules)
 
 find_package(SDL2 REQUIRED)
