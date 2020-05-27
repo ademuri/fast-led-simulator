@@ -1,10 +1,19 @@
-#include "fast-led-simulator.h"
+#include "linear-simulator.h"
+
+const int kSize = 30;
 
 int main() {
-  FastLEDSimulator<30> simulator;
+  LinearSimulator<kSize> simulator;
   simulator.Init();
 
-  while (simulator.Run());
+  int counter = 0;
+  while (simulator.Run()) {
+    for (int i = 0; i < kSize; i++) {
+      simulator.leds[i] = CHSV(counter + i * 10, 255, 255);
+    }
+
+    counter++;
+  }
 
   simulator.Close();
 }

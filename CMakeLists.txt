@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
-
-# TODO: can this have the same name as the lib?
 project(fast-led-simulator CXX)
+set(CMAKE_CXX_STANDARD 11)
 
 # Generate the file needed for YCM integration
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
