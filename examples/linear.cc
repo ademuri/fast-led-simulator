@@ -1,5 +1,5 @@
 #include "fast-led-simulator.h"
 
 int main() {
-  FastLEDSimulator simulator;
+  FastLEDSimulator<30> simulator;
 }

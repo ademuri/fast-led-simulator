@@ -10,6 +10,8 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/third_party/sdl2-cmake
 
 find_package(SDL2 REQUIRED)
 
+add_subdirectory(third_party/FakeFastLED)
+
 add_library(fast-led-simulator
  src/fast-led-simulator.cc) 
 
@@ -22,7 +24,8 @@ target_include_directories(fast-led-simulator PUBLIC
     PRIVATE src)
 
 target_link_libraries(fast-led-simulator
-  SDL2)
+  SDL2
+  fake-fast-led)
 
 # Only do these if this is the main project, and not if it is included through add_subdirectory
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
