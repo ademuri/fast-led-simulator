@@ -5,4 +5,6 @@ int main() {
   simulator.Init();
 
   while (simulator.Run());
+
+  simulator.Close();
 }

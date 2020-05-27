@@ -16,8 +16,13 @@ class FastLEDSimulator {
     // Runs the event loop. Call periodically. Returns false when the user closes the window.
     bool Run();
 
+    // Closes the window. Call last.
+    void Close();
+
   private:
     CRGB leds[size];
+    SDL_Window* window;
+    SDL_Renderer *renderer;
 
     void LogSDLError(const std::string component);
 };
@@ -29,16 +34,16 @@ bool FastLEDSimulator<size>::Init() {
     return false;
   }
 
-  SDL_Window *win = SDL_CreateWindow("FastLED Simulator", 100, 100, 640, 480, SDL_WINDOW_SHOWN);
-  if (win == nullptr){
+  window = SDL_CreateWindow("FastLED Simulator", 100, 100, 640, 480, SDL_WINDOW_SHOWN);
+  if (window == nullptr){
     LogSDLError("SDL_CreateWindow: ");
     SDL_Quit();
     return false;
   }
 
-  SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-  if (ren == nullptr){
-    SDL_DestroyWindow(win);
+  renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  if (renderer == nullptr){
+    SDL_DestroyWindow(window);
     LogSDLError("SDL_CreateRenderer: ");
     SDL_Quit();
     return false;
@@ -56,7 +61,20 @@ bool FastLEDSimulator<size>::Run() {
     }
   }
 
+  SDL_Rect rect = {10, 10, 20, 20};
+  SDL_SetRenderDrawColor(renderer, 0xFF, 0x00, 0x00, 0xFF);
+  SDL_RenderFillRect(renderer, &rect);
+
+  SDL_RenderPresent(renderer);
+
   return true;
+}
+
+template<size_t size>
+void FastLEDSimulator<size>::Close() {
+  SDL_DestroyRenderer(renderer);
+  SDL_DestroyWindow(window);
+  SDL_Quit();
 }
 
 template<size_t size>
