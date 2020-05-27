@@ -7,6 +7,10 @@ python:
 
 sudo: false
 
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libsdl2-dev
+
 jobs:
   include:
     - script: ./build.sh
