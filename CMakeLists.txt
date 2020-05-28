@@ -1,18 +1,23 @@
-cmake_minimum_required(VERSION 2.6)
+cmake_minimum_required(VERSION 3.11)
 project(fast-led-simulator CXX)
 set(CMAKE_CXX_STANDARD 11)
 
 # Generate the file needed for YCM integration
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
+include(FetchContent)
+FetchContent_Declare(fake-fast-led
+    GIT_REPOSITORY      https://github.com/ademuri/FakeFastLED.git
+    GIT_TAG             master
+)
+FetchContent_MakeAvailable(fake-fast-led)
+
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/third_party/sdl2-cmake-modules)
 
 find_package(SDL2 REQUIRED)
 
-add_subdirectory(third_party/FakeFastLED)
-
 add_library(fast-led-simulator
- src/fast-led-simulator.cc) 
+  src/fast-led-simulator.cc)
 
 # Define headers for this library. PUBLIC headers are used for
 # compiling the library, and will be added to consumers' build
