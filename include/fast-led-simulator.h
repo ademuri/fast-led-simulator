@@ -34,6 +34,10 @@ class FastLEDSimulator {
     // Sets LED locations and sizes based on the current window size
     virtual void SetLedPositions() = 0;
 
+    // Returns the initial size and position of the window
+    virtual SDL_Point GetInitialSize() = 0;
+    virtual SDL_Point GetInitialPosition() = 0;
+
     // Prints the current SDL error
     void LogSDLError(const std::string component);
 
@@ -49,16 +53,9 @@ bool FastLEDSimulator<size>::Init() {
     return false;
   }
 
-  // Make the window as wide as possible. Note: this doesn't work with display scaling!
-  int width = 1024;
-  SDL_DisplayMode display_mode;
-  if (SDL_GetCurrentDisplayMode(0, &display_mode)) {
-    LogSDLError("SDL_GetDisplayUsableBounds");
-  } else {
-    width = display_mode.w;
-  }
-
-  window_ = SDL_CreateWindow("FastLED Simulator", 0, 100, width, 100, SDL_WINDOW_RESIZABLE);
+  SDL_Point initial_size = GetInitialSize();
+  SDL_Point initial_position = GetInitialPosition();
+  window_ = SDL_CreateWindow("FastLED Simulator", initial_position.x, initial_position.y, initial_size.x, initial_size.y, SDL_WINDOW_RESIZABLE);
   if (window_ == nullptr){
     LogSDLError("SDL_CreateWindow");
     SDL_Quit();
@@ -74,7 +71,6 @@ bool FastLEDSimulator<size>::Init() {
   }
 
   SetLedPositions();
-  SDL_SetWindowSize(window_, width, led_frame_pixels_ + 20);
   DrawFrames();
   SDL_RenderPresent(renderer_);
 
