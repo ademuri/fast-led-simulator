@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = git@github.com:Crascit/DownloadProject.git
+	branch = master
+	commit = 3a281711d1243351190bdee50a40d81694aa630a
+	parent = f1992bca75e96026cceb2d9883d931419e99f040
+	cmdver = 0.3.1
