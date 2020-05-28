@@ -10,7 +10,15 @@ FetchContent_Declare(fake-fast-led
     GIT_REPOSITORY      https://github.com/ademuri/FakeFastLED.git
     GIT_TAG             master
 )
-FetchContent_MakeAvailable(fake-fast-led)
+if (${CMAKE_VERSION} VERSION_GREATER_EQUAL 3.14)
+  FetchContent_MakeAvailable(fake-fast-led)
+else()
+  FetchContent_GetProperties(fake-fast-led)
+  if(NOT fake-fast-led_POPULATED)
+    FetchContent_Populate(fake-fast-led)
+    add_subdirectory(${fake-fast-led_SOURCE_DIR} ${fake-fast-led_BINARY_DIR})
+  endif()
+endif()
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/third_party/sdl2-cmake-modules)
 
