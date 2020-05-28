@@ -21,18 +21,25 @@ class FastLEDSimulator {
 
   protected:
     // Don't use this class directly - use a subclass.
-    FastLEDSimulator(int led_circle_pixels, int led_square_pixels) : led_pixels_(led_circle_pixels), led_frame_pixels_(led_square_pixels) {}
+    FastLEDSimulator() {}
 
-    const int led_pixels_;
-    const int led_frame_pixels_;
-
-    SDL_Point led_locations_[size];
-
-  private:
     SDL_Window* window_;
     SDL_Renderer *renderer_;
 
+    int led_pixels_;
+    int led_frame_pixels_;
+
+    SDL_Point led_locations_[size];
+
+    // Sets LED locations and sizes based on the current window size
+    virtual void SetLedPositions() = 0;
+
+    // Prints the current SDL error
     void LogSDLError(const std::string component);
+
+  private:
+    void DrawFrames();
+    void DrawLeds();
 };
 
 template<size_t size>
@@ -42,9 +49,18 @@ bool FastLEDSimulator<size>::Init() {
     return false;
   }
 
-  window_ = SDL_CreateWindow("FastLED Simulator", 100, 100, 2000, 100, SDL_WINDOW_SHOWN);
+  // Make the window as wide as possible. Note: this doesn't work with display scaling!
+  int width = 1024;
+  SDL_DisplayMode display_mode;
+  if (SDL_GetCurrentDisplayMode(0, &display_mode)) {
+    LogSDLError("SDL_GetDisplayUsableBounds");
+  } else {
+    width = display_mode.w;
+  }
+
+  window_ = SDL_CreateWindow("FastLED Simulator", 0, 100, width, 100, SDL_WINDOW_RESIZABLE);
   if (window_ == nullptr){
-    LogSDLError("SDL_CreateWindow: ");
+    LogSDLError("SDL_CreateWindow");
     SDL_Quit();
     return false;
   }
@@ -52,17 +68,14 @@ bool FastLEDSimulator<size>::Init() {
   renderer_ = SDL_CreateRenderer(window_, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
   if (renderer_ == nullptr){
     SDL_DestroyWindow(window_);
-    LogSDLError("SDL_CreateRenderer: ");
+    LogSDLError("SDL_CreateRenderer");
     SDL_Quit();
     return false;
   }
 
-  // Draw the frames around the LEDs
-  SDL_SetRenderDrawColor(renderer_, 0x40, 0x40, 0x40, 0xFF);
-  for (int i = 0; i < size; i++) {
-    SDL_Rect rect = {led_locations_[i].x, led_locations_[i].y, led_frame_pixels_, led_frame_pixels_};
-    SDL_RenderFillRect(renderer_, &rect);
-  }
+  SetLedPositions();
+  SDL_SetWindowSize(window_, width, led_frame_pixels_ + 20);
+  DrawFrames();
   SDL_RenderPresent(renderer_);
 
   return true;
@@ -72,19 +85,28 @@ template<size_t size>
 bool FastLEDSimulator<size>::Run() {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
-    if (event.type == SDL_QUIT || event.type == SDL_KEYUP && event.key.keysym.sym == SDLK_ESCAPE) {
-      return false;
+    switch(event.type) {
+      case SDL_QUIT:
+        return false;
+
+      case SDL_KEYUP:
+        if (event.key.keysym.sym == SDLK_ESCAPE) {
+          return false;
+        }
+        break;
+
+      case SDL_WINDOWEVENT:
+        switch (event.window.event) {
+          case SDL_WINDOWEVENT_RESIZED:
+          case SDL_WINDOWEVENT_SIZE_CHANGED:
+            SetLedPositions();
+            break;
+        }
     }
   }
 
-  for (int i = 0; i < size; i++) {
-    int led_offset = (led_frame_pixels_ - led_pixels_) / 2;
-
-    SDL_SetRenderDrawColor(renderer_, leds[i].r, leds[i].g, leds[i].b, 0xFF);
-    SDL_Rect rect = {led_locations_[i].x + led_offset, led_locations_[i].y + led_offset, led_pixels_, led_pixels_};
-    SDL_RenderFillRect(renderer_, &rect);
-  }
-
+  DrawFrames();
+  DrawLeds();
   SDL_RenderPresent(renderer_);
 
   return true;
@@ -95,6 +117,29 @@ void FastLEDSimulator<size>::Close() {
   SDL_DestroyRenderer(renderer_);
   SDL_DestroyWindow(window_);
   SDL_Quit();
+}
+
+template<size_t size>
+void FastLEDSimulator<size>::DrawFrames() {
+  SDL_SetRenderDrawColor(renderer_, 0x00, 0x00, 0x00, 0xFF);
+  SDL_RenderClear(renderer_);
+
+  SDL_SetRenderDrawColor(renderer_, 0x40, 0x40, 0x40, 0xFF);
+  for (int i = 0; i < size; i++) {
+    SDL_Rect rect = {led_locations_[i].x, led_locations_[i].y, led_frame_pixels_, led_frame_pixels_};
+    SDL_RenderFillRect(renderer_, &rect);
+  }
+}
+
+template<size_t size>
+void FastLEDSimulator<size>::DrawLeds() {
+  for (int i = 0; i < size; i++) {
+    int led_offset = (led_frame_pixels_ - led_pixels_) / 2;
+
+    SDL_SetRenderDrawColor(renderer_, leds[i].r, leds[i].g, leds[i].b, 0xFF);
+    SDL_Rect rect = {led_locations_[i].x + led_offset, led_locations_[i].y + led_offset, led_pixels_, led_pixels_};
+    SDL_RenderFillRect(renderer_, &rect);
+  }
 }
 
 template<size_t size>
