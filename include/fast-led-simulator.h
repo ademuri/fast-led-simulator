@@ -57,6 +57,9 @@ class FastLEDSimulator {
     // Prints the current SDL error
     void LogSDLError(const std::string component);
 
+    // Whether to enable the audio subsystem. Disabled by default.
+    virtual bool EnableAudio();
+
   private:
     void DrawFrames();
     void DrawLeds();
@@ -64,7 +67,11 @@ class FastLEDSimulator {
 
 template<size_t size>
 bool FastLEDSimulator<size>::Init() {
-  if (SDL_Init(SDL_INIT_VIDEO) != 0){
+  int flags = SDL_INIT_VIDEO;
+  if (EnableAudio()) {
+    flags |= SDL_INIT_AUDIO;
+  }
+  if (SDL_Init(flags) != 0){
     LogSDLError("SDL_Init: ");
     return false;
   }
@@ -157,6 +164,11 @@ void FastLEDSimulator<size>::DrawLeds() {
 template<size_t size>
 void FastLEDSimulator<size>::LogSDLError(const std::string component) {
   std::cout << component << ": " << SDL_GetError() << std::endl;
+}
+
+template<size_t size>
+bool FastLEDSimulator<size>::EnableAudio() {
+  return false;
 }
 
 #endif  // FAST_LED_SIMULATOR_H_
