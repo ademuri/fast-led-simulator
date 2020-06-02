@@ -30,10 +30,9 @@ class LinearSimulator : public FastLEDSimulator<size> {
     SDL_Point GetInitialSize() override;
     SDL_Point GetInitialPosition() override;
 
-  private:
-    static const int kLedMarginPixels = 4;
-
     int CalculateFrameWidth(int screen_width);
+
+    static const int kLedMarginPixels = 4;
 };
 
 template<size_t size>

@@ -59,6 +59,9 @@ class FastLEDSimulator {
 
     // Whether to enable the audio subsystem. Disabled by default.
     virtual bool EnableAudio();
+    
+    // Subclasses may use this to draw other things.
+    virtual void DrawExtras() {}
 
   private:
     void DrawFrames();
@@ -95,6 +98,7 @@ bool FastLEDSimulator<size>::Init() {
 
   SetLedPositions();
   DrawFrames();
+  DrawExtras();
   SDL_RenderPresent(renderer_);
 
   return true;
@@ -126,6 +130,7 @@ bool FastLEDSimulator<size>::Run() {
 
   DrawFrames();
   DrawLeds();
+  DrawExtras();
   SDL_RenderPresent(renderer_);
 
   return true;
