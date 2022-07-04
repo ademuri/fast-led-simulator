@@ -20,6 +20,10 @@ set(CMAKE_CXX_STANDARD 11)
 # Generate the file needed for YCM integration
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
+# Set appropriate warning levels and include debug symbols.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -g ${SANITIZER_FLAGS}")
+set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS_DEBUG} ${SANITIZER_FLAGS}")
+
 include(FetchContent)
 FetchContent_Declare(fake-fast-led
     GIT_REPOSITORY      https://github.com/ademuri/FakeFastLED.git
