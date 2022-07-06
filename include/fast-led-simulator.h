@@ -19,10 +19,17 @@
 
 #include <FastLED.h>
 #include <SDL2/SDL.h>
+
 #include <iostream>
 
-template <size_t size> class FastLEDSimulator {
-public:
+struct LedSize {
+  int led_size;
+  int frame_size;
+};
+
+template <size_t size>
+class FastLEDSimulator {
+ public:
   // Initializes SDL. Call first.
   bool Init();
 
@@ -35,15 +42,12 @@ public:
 
   CRGB leds[size];
 
-protected:
+ protected:
   // Don't use this class directly - use a subclass.
   FastLEDSimulator() {}
 
   SDL_Window *window_;
   SDL_Renderer *renderer_;
-
-  int led_pixels_;
-  int led_frame_pixels_;
 
   SDL_Point led_locations_[size];
 
@@ -54,6 +58,9 @@ protected:
   virtual SDL_Point GetInitialSize() = 0;
   virtual SDL_Point GetInitialPosition() = 0;
 
+  // Returns the number of pixels to use for each LED.
+  virtual LedSize GetLedSize() = 0;
+
   // Prints the current SDL error
   void LogSDLError(const std::string component);
 
@@ -63,12 +70,13 @@ protected:
   // Subclasses may use this to draw other things.
   virtual void DrawExtras() {}
 
-private:
+ private:
   void DrawFrames();
   void DrawLeds();
 };
 
-template <size_t size> bool FastLEDSimulator<size>::Init() {
+template <size_t size>
+bool FastLEDSimulator<size>::Init() {
   int flags = SDL_INIT_VIDEO;
   if (EnableAudio()) {
     flags |= SDL_INIT_AUDIO;
@@ -106,26 +114,27 @@ template <size_t size> bool FastLEDSimulator<size>::Init() {
   return true;
 }
 
-template <size_t size> bool FastLEDSimulator<size>::Run() {
+template <size_t size>
+bool FastLEDSimulator<size>::Run() {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
     switch (event.type) {
-    case SDL_QUIT:
-      return false;
-
-    case SDL_KEYUP:
-      if (event.key.keysym.sym == SDLK_ESCAPE) {
+      case SDL_QUIT:
         return false;
-      }
-      break;
 
-    case SDL_WINDOWEVENT:
-      switch (event.window.event) {
-      case SDL_WINDOWEVENT_RESIZED:
-      case SDL_WINDOWEVENT_SIZE_CHANGED:
-        SetLedPositions();
+      case SDL_KEYUP:
+        if (event.key.keysym.sym == SDLK_ESCAPE) {
+          return false;
+        }
         break;
-      }
+
+      case SDL_WINDOWEVENT:
+        switch (event.window.event) {
+          case SDL_WINDOWEVENT_RESIZED:
+          case SDL_WINDOWEVENT_SIZE_CHANGED:
+            SetLedPositions();
+            break;
+        }
     }
   }
 
@@ -137,32 +146,37 @@ template <size_t size> bool FastLEDSimulator<size>::Run() {
   return true;
 }
 
-template <size_t size> void FastLEDSimulator<size>::Close() {
+template <size_t size>
+void FastLEDSimulator<size>::Close() {
   SDL_DestroyRenderer(renderer_);
   SDL_DestroyWindow(window_);
   SDL_Quit();
 }
 
-template <size_t size> void FastLEDSimulator<size>::DrawFrames() {
+template <size_t size>
+void FastLEDSimulator<size>::DrawFrames() {
+  const LedSize led_size = GetLedSize();
   SDL_SetRenderDrawColor(renderer_, 0x00, 0x00, 0x00, 0xFF);
   SDL_RenderClear(renderer_);
 
   SDL_SetRenderDrawColor(renderer_, 0x40, 0x40, 0x40, 0xFF);
   for (size_t i = 0; i < size; i++) {
     SDL_Rect rect = {led_locations_[i].x, led_locations_[i].y,
-                     led_frame_pixels_, led_frame_pixels_};
+                     led_size.frame_size, led_size.frame_size};
     SDL_RenderFillRect(renderer_, &rect);
   }
 }
 
-template <size_t size> void FastLEDSimulator<size>::DrawLeds() {
+template <size_t size>
+void FastLEDSimulator<size>::DrawLeds() {
+  const LedSize led_size = GetLedSize();
   for (size_t i = 0; i < size; i++) {
-    int led_offset = (led_frame_pixels_ - led_pixels_) / 2;
+    int led_offset = (led_size.frame_size - led_size.led_size) / 2;
 
     SDL_SetRenderDrawColor(renderer_, leds[i].r, leds[i].g, leds[i].b, 0xFF);
     SDL_Rect rect = {led_locations_[i].x + led_offset,
-                     led_locations_[i].y + led_offset, led_pixels_,
-                     led_pixels_};
+                     led_locations_[i].y + led_offset, led_size.led_size,
+                     led_size.led_size};
     SDL_RenderFillRect(renderer_, &rect);
   }
 }
@@ -172,8 +186,9 @@ void FastLEDSimulator<size>::LogSDLError(const std::string component) {
   std::cout << component << ": " << SDL_GetError() << std::endl;
 }
 
-template <size_t size> bool FastLEDSimulator<size>::EnableAudio() {
+template <size_t size>
+bool FastLEDSimulator<size>::EnableAudio() {
   return false;
 }
 
-#endif // FAST_LED_SIMULATOR_H_
+#endif  // FAST_LED_SIMULATOR_H_

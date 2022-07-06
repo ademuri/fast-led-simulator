@@ -19,15 +19,18 @@
 
 #include "fast-led-simulator.h"
 
-template <size_t size> class LinearSimulator : public FastLEDSimulator<size> {
-public:
+template <size_t size>
+class LinearSimulator : public FastLEDSimulator<size> {
+ public:
   LinearSimulator();
 
-protected:
+ protected:
   void SetLedPositions() override;
 
   SDL_Point GetInitialSize() override;
   SDL_Point GetInitialPosition() override;
+
+  LedSize GetLedSize() override;
 
   int CalculateFrameWidth(int screen_width);
 
@@ -37,24 +40,20 @@ protected:
 template <size_t size>
 LinearSimulator<size>::LinearSimulator() : FastLEDSimulator<size>() {}
 
-template <size_t size> void LinearSimulator<size>::SetLedPositions() {
-  int width = 1024;
-  if (SDL_GetRendererOutputSize(this->renderer_, &width, nullptr)) {
-    this->LogSDLError("SDL_GetRendererOutputSize");
-  }
+template <size_t size>
+void LinearSimulator<size>::SetLedPositions() {
+  const LedSize led_size = GetLedSize();
 
-  this->led_frame_pixels_ = CalculateFrameWidth(width);
-  this->led_pixels_ = this->led_frame_pixels_ - 4;
   for (size_t i = 0; i < size; i++) {
     this->leds[i] = CRGB(0, 0, 0);
     this->led_locations_[i] = {
-        (int)(kLedMarginPixels +
-              (this->led_frame_pixels_ + kLedMarginPixels) * i),
+        (int)(kLedMarginPixels + (led_size.frame_size + kLedMarginPixels) * i),
         kLedMarginPixels};
   }
 }
 
-template <size_t size> SDL_Point LinearSimulator<size>::GetInitialSize() {
+template <size_t size>
+SDL_Point LinearSimulator<size>::GetInitialSize() {
   // Make the window as wide as possible. Note: this doesn't work with display
   // scaling!
   int width = 1024;
@@ -68,8 +67,22 @@ template <size_t size> SDL_Point LinearSimulator<size>::GetInitialSize() {
   return {width, CalculateFrameWidth(width) + kLedMarginPixels * 2};
 }
 
-template <size_t size> SDL_Point LinearSimulator<size>::GetInitialPosition() {
+template <size_t size>
+SDL_Point LinearSimulator<size>::GetInitialPosition() {
   return {0, 100};
+}
+
+template <size_t size>
+LedSize LinearSimulator<size>::GetLedSize() {
+  int width = 1024;
+  if (SDL_GetRendererOutputSize(this->renderer_, &width, nullptr)) {
+    this->LogSDLError("SDL_GetRendererOutputSize");
+  }
+
+  LedSize ret;
+  ret.frame_size = CalculateFrameWidth(width);
+  ret.led_size = ret.frame_size - 4;
+  return ret;
 }
 
 template <size_t size>
@@ -77,4 +90,4 @@ int LinearSimulator<size>::CalculateFrameWidth(int screen_width) {
   return (1.0 * screen_width - this->kLedMarginPixels * (size + 1)) / size;
 }
 
-#endif // LINEAR_SIMULATOR_H_
+#endif  // LINEAR_SIMULATOR_H_
