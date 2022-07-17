@@ -20,11 +20,13 @@
 #include <FastLED.h>
 #include <SDL2/SDL.h>
 
+#include <array>
 #include <iostream>
 
-struct LedSize {
+struct Led {
   int led_size;
   int frame_size;
+  SDL_Point location;
 };
 
 template <size_t size>
@@ -49,7 +51,7 @@ class FastLEDSimulator {
   SDL_Window *window_;
   SDL_Renderer *renderer_;
 
-  SDL_Point led_locations_[size];
+  std::array<Led, size> led_layout_;
 
   // Sets LED locations and sizes based on the current window size
   virtual void SetLedPositions() = 0;
@@ -57,9 +59,6 @@ class FastLEDSimulator {
   // Returns the initial size and position of the window
   virtual SDL_Point GetInitialSize() = 0;
   virtual SDL_Point GetInitialPosition() = 0;
-
-  // Returns the number of pixels to use for each LED.
-  virtual LedSize GetLedSize() = 0;
 
   // Prints the current SDL error
   void LogSDLError(const std::string component);
@@ -155,28 +154,26 @@ void FastLEDSimulator<size>::Close() {
 
 template <size_t size>
 void FastLEDSimulator<size>::DrawFrames() {
-  const LedSize led_size = GetLedSize();
   SDL_SetRenderDrawColor(renderer_, 0x00, 0x00, 0x00, 0xFF);
   SDL_RenderClear(renderer_);
 
   SDL_SetRenderDrawColor(renderer_, 0x40, 0x40, 0x40, 0xFF);
   for (size_t i = 0; i < size; i++) {
-    SDL_Rect rect = {led_locations_[i].x, led_locations_[i].y,
-                     led_size.frame_size, led_size.frame_size};
+    SDL_Rect rect = {led_layout_[i].location.x, led_layout_[i].location.y,
+                     led_layout_[i].frame_size, led_layout_[i].frame_size};
     SDL_RenderFillRect(renderer_, &rect);
   }
 }
 
 template <size_t size>
 void FastLEDSimulator<size>::DrawLeds() {
-  const LedSize led_size = GetLedSize();
   for (size_t i = 0; i < size; i++) {
-    int led_offset = (led_size.frame_size - led_size.led_size) / 2;
+    int led_offset = (led_layout_[i].frame_size - led_layout_[i].led_size) / 2;
 
     SDL_SetRenderDrawColor(renderer_, leds[i].r, leds[i].g, leds[i].b, 0xFF);
-    SDL_Rect rect = {led_locations_[i].x + led_offset,
-                     led_locations_[i].y + led_offset, led_size.led_size,
-                     led_size.led_size};
+    SDL_Rect rect = {led_layout_[i].location.x + led_offset,
+                     led_layout_[i].location.y + led_offset,
+                     led_layout_[i].led_size, led_layout_[i].led_size};
     SDL_RenderFillRect(renderer_, &rect);
   }
 }

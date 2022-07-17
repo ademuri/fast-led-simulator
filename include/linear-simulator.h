@@ -30,8 +30,6 @@ class LinearSimulator : public FastLEDSimulator<size> {
   SDL_Point GetInitialSize() override;
   SDL_Point GetInitialPosition() override;
 
-  LedSize GetLedSize() override;
-
   int CalculateFrameWidth(int screen_width);
 
   static const int kLedMarginPixels = 4;
@@ -42,12 +40,20 @@ LinearSimulator<size>::LinearSimulator() : FastLEDSimulator<size>() {}
 
 template <size_t size>
 void LinearSimulator<size>::SetLedPositions() {
-  const LedSize led_size = GetLedSize();
+  int width = 1024;
+  if (SDL_GetRendererOutputSize(this->renderer_, &width, nullptr)) {
+    this->LogSDLError("SDL_GetRendererOutputSize");
+  }
+
+  const int frame_size = CalculateFrameWidth(width);
+  const int led_size = frame_size - 4;
 
   for (size_t i = 0; i < size; i++) {
     this->leds[i] = CRGB(0, 0, 0);
-    this->led_locations_[i] = {
-        (int)(kLedMarginPixels + (led_size.frame_size + kLedMarginPixels) * i),
+    this->led_layout_[i].led_size = led_size;
+    this->led_layout_[i].frame_size = frame_size;
+    this->led_layout_[i].location = {
+        (int)(kLedMarginPixels + (frame_size + kLedMarginPixels) * i),
         kLedMarginPixels};
   }
 }
@@ -70,19 +76,6 @@ SDL_Point LinearSimulator<size>::GetInitialSize() {
 template <size_t size>
 SDL_Point LinearSimulator<size>::GetInitialPosition() {
   return {0, 100};
-}
-
-template <size_t size>
-LedSize LinearSimulator<size>::GetLedSize() {
-  int width = 1024;
-  if (SDL_GetRendererOutputSize(this->renderer_, &width, nullptr)) {
-    this->LogSDLError("SDL_GetRendererOutputSize");
-  }
-
-  LedSize ret;
-  ret.frame_size = CalculateFrameWidth(width);
-  ret.led_size = ret.frame_size - 4;
-  return ret;
 }
 
 template <size_t size>

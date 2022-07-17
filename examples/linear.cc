@@ -14,7 +14,7 @@
 
 #include "linear-simulator.h"
 
-const int kSize = 30;
+static constexpr int kSize = 30;
 
 int main() {
   LinearSimulator<kSize> simulator;
