@@ -17,8 +17,13 @@
 #ifndef FAST_LED_SIMULATOR_H_
 #define FAST_LED_SIMULATOR_H_
 
-#include <FastLED.h>
+#if __APPLE__
+#include <SDL.h>
+#else
 #include <SDL2/SDL.h>
+#endif
+
+#include <FastLED.h>
 
 #include <array>
 #include <iostream>
